@@ -8,11 +8,9 @@ from rich.console import Console
 from rich.panel import Panel
 
 from multi_agent_research_lab.core.config import get_settings
-from multi_agent_research_lab.core.errors import StudentTodoError
 from multi_agent_research_lab.core.schemas import ResearchQuery
-from multi_agent_research_lab.core.state import ResearchState
-from multi_agent_research_lab.graph.workflow import MultiAgentWorkflow
 from multi_agent_research_lab.observability.logging import configure_logging
+from multi_agent_research_lab.runners import run_baseline_query, run_multi_agent_query
 
 app = typer.Typer(help="Multi-Agent Research Lab starter CLI")
 console = Console()
@@ -41,32 +39,31 @@ def _parse_query(query: str) -> ResearchQuery:
 def baseline(
     query: Annotated[str, typer.Option("--query", "-q", help="Research query")],
 ) -> None:
-    """Run a minimal single-agent baseline placeholder."""
+    """Run the single-agent baseline."""
 
     _init()
     request = _parse_query(query)
-    state = ResearchState(request=request)
-    state.final_answer = (
-        "Baseline skeleton response. TODO(student): replace this with a real single-agent "
-        "implementation and record latency/cost/quality metrics."
+    state = run_baseline_query(
+        request.query,
+        max_sources=request.max_sources,
+        audience=request.audience,
     )
-    console.print(Panel.fit(state.final_answer, title="Single-Agent Baseline"))
+    console.print(Panel.fit(state.final_answer or "", title="Single-Agent Baseline"))
 
 
 @app.command("multi-agent")
 def multi_agent(
     query: Annotated[str, typer.Option("--query", "-q", help="Research query")],
 ) -> None:
-    """Run the multi-agent workflow skeleton."""
+    """Run the multi-agent workflow."""
 
     _init()
-    state = ResearchState(request=_parse_query(query))
-    workflow = MultiAgentWorkflow()
-    try:
-        result = workflow.run(state)
-    except StudentTodoError as exc:
-        console.print(Panel.fit(str(exc), title="Expected TODO", style="yellow"))
-        raise typer.Exit(code=2) from exc
+    request = _parse_query(query)
+    result = run_multi_agent_query(
+        request.query,
+        max_sources=request.max_sources,
+        audience=request.audience,
+    )
     console.print(result.model_dump_json(indent=2))
 
 

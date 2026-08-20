@@ -12,9 +12,9 @@ from typing import Any
 
 @contextmanager
 def trace_span(name: str, attributes: dict[str, Any] | None = None) -> Iterator[dict[str, Any]]:
-    """Minimal span context used by the skeleton.
+    """Minimal local span context.
 
-    TODO(student): Replace or augment with LangSmith/Langfuse provider spans.
+    It can be augmented with LangSmith, Langfuse, or OpenTelemetry spans later.
     """
 
     started = perf_counter()
